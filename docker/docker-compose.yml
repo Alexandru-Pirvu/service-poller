@@ -1,0 +1,19 @@
+version: '3.9'
+
+services:
+  database:
+    image: mysql
+    hostname: mysql
+    ports:
+      - '3309:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: dev
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: secret
+
+  mockserver:
+    image: mockserver
+    hostname: mockserver
+    ports:
+      - '3000-3100:3000-3100'
