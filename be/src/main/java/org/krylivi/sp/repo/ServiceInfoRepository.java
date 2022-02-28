@@ -16,6 +16,7 @@ import org.krylivi.sp.model.EventBusAddress;
 import org.krylivi.sp.model.ServiceInfo;
 import org.krylivi.sp.model.ServiceStatus;
 import org.krylivi.sp.rest.dto.AddServiceInfoRequest;
+import org.krylivi.sp.service.dto.UpdateServiceStatusRequest;
 
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
@@ -45,24 +46,35 @@ public class ServiceInfoRepository extends AbstractVerticle {
 
     @Override
     public void start() {
-        vertx.eventBus().consumer(EventBusAddress.GET_SERVICE.toString(), message -> {
-            this.getOne(Long.parseLong(message.body().toString())).onSuccess(serviceInfo -> {
-                message.reply(JsonObject.mapFrom(serviceInfo).toBuffer());
-            });
-        });
+        vertx.eventBus().consumer(
+                EventBusAddress.GET_SERVICE.toString(),
+                message -> this.getOne(Long.parseLong(message.body().toString()))
+                        .onSuccess(serviceInfo -> message.reply(JsonObject.mapFrom(serviceInfo).toBuffer()))
+                        .onFailure(e -> message.fail(0, e.getMessage())));
 
-        vertx.eventBus().consumer(EventBusAddress.GET_SERVICES.toString(), message -> {
-            this.getAll().onSuccess(rows -> {
-                message.reply(new JsonArray(StreamSupport.stream(rows.spliterator(), false).toList()).toBuffer());
-            });
-        });
+        vertx.eventBus().consumer(
+                EventBusAddress.GET_SERVICES.toString(),
+                message -> this.getAll()
+                        .onSuccess(rows -> message.reply(new JsonArray(StreamSupport.stream(rows.spliterator(), false).toList()).toBuffer()))
+                        .onFailure(e -> message.fail(0, e.getMessage())));
 
-        vertx.eventBus().consumer(EventBusAddress.ADD_SERVICE.toString(), message -> {
-            AddServiceInfoRequest addServiceInfoRequest = ((Buffer) message.body()).toJsonObject().mapTo(AddServiceInfoRequest.class);
-            this.save(addServiceInfoRequest).onSuccess(savedServiceInfo -> {
-                message.reply(JsonObject.mapFrom(savedServiceInfo).toBuffer());
-            });
-        });
+        vertx.eventBus().consumer(
+                EventBusAddress.ADD_SERVICE.toString(),
+                message -> {
+                    AddServiceInfoRequest addServiceInfoRequest = ((Buffer) message.body()).toJsonObject().mapTo(AddServiceInfoRequest.class);
+                    this.save(addServiceInfoRequest)
+                            .onSuccess(savedServiceInfo -> message.reply(JsonObject.mapFrom(savedServiceInfo).toBuffer()))
+                            .onFailure(e -> message.fail(0, e.getMessage()));
+                });
+
+        vertx.eventBus().<Buffer>consumer(
+                EventBusAddress.UPDATE_SERVICE_STATUS.toString(),
+                message -> {
+                    UpdateServiceStatusRequest updateServiceStatusRequest = message.body().toJsonObject().mapTo(UpdateServiceStatusRequest.class);
+                    this.updateServiceStatus(updateServiceStatusRequest)
+                            .onSuccess(savedServiceInfo -> message.reply(JsonObject.mapFrom(savedServiceInfo).toBuffer()))
+                            .onFailure(e -> message.fail(0, e.getMessage()));
+                });
     }
 
     public Future<RowSet<ServiceInfo>> getAll() {
@@ -70,7 +82,6 @@ public class ServiceInfoRepository extends AbstractVerticle {
                 .query("select * from service_info")
                 .mapping(SERVICE_INFO_ROW_MAPPER)
                 .execute();
-
     }
 
     public Future<ServiceInfo> getOne(Long id) {
@@ -79,7 +90,6 @@ public class ServiceInfoRepository extends AbstractVerticle {
                 .mapping(SERVICE_INFO_ROW_MAPPER)
                 .execute(Tuple.of(id))
                 .map(serviceInfos -> serviceInfos.iterator().next());
-
     }
 
     public Future<ServiceInfo> save(AddServiceInfoRequest addServiceInfoRequest) {
@@ -90,6 +100,13 @@ public class ServiceInfoRepository extends AbstractVerticle {
                     Long id = rows.property(MySQLClient.LAST_INSERTED_ID);
                     return this.getOne(id);
                 });
+    }
+
+    public Future<ServiceInfo> updateServiceStatus(UpdateServiceStatusRequest updateServiceStatusRequest) {
+        return this.msqlClient
+                .preparedQuery("update service_info set status=? where id=?")
+                .execute(Tuple.of(updateServiceStatusRequest.status(), updateServiceStatusRequest.id()))
+                .compose(rows -> this.getOne(updateServiceStatusRequest.id()));
     }
 
 }
