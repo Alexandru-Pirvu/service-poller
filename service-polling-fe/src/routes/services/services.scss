@@ -1,0 +1,111 @@
+.services-container {
+  padding: 20px 100px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  .status {
+    width: 50px;
+
+    border-radius: 15px;
+  }
+
+  .green {
+    background-color: green;
+  }
+
+  .red {
+    background-color: red;
+  }
+
+  .table-header-container {
+    width: 100%;
+
+    display: flex;
+    justify-content: space-between;
+
+    .add-service-button {
+      margin: 10px 0;
+
+      flex-shrink: 0;
+    }
+
+    span {
+      padding: 10px;
+
+      width: 100%;
+
+      font-size: 20px;
+      font-weight: bold;
+    }
+  }
+
+  table {
+    width: 100%;
+
+    border: 1px solid;
+
+    th {
+      text-align: start;
+    }
+
+    thead tr th {
+
+    }
+  }
+}
+
+.create-service-modal {
+  height: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .modal-container {
+    padding: 10px;
+
+    height: 200px;
+    width: 400px;
+
+    box-shadow: 0 0 4px cadetblue;
+    background-color: white;
+    border-radius: 10px;
+
+    form {
+      display: flex;
+      flex-direction: column;
+
+      .form-inputs {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+
+        .form-group {
+          margin: 5px 0;
+
+          display: flex;
+          justify-content: space-between;
+        }
+      }
+
+      .form-buttons {
+        margin: 10px 0;
+
+        display: flex;
+        justify-content: end;
+
+        .form-button {
+          width: 10px;
+          height: 100%;
+
+          margin-left: 10px;
+
+          align-self: end;
+        }
+      }
+    }
+  }
+}

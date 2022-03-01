@@ -20,7 +20,7 @@ public class ServicePoller extends AbstractVerticle {
 
     @Override
     public void start() {
-        TimeoutStream pollingStream = vertx.periodicStream(1000);
+        TimeoutStream pollingStream = vertx.periodicStream(15000);
 
         pollingStream
                 .handler(time -> {
