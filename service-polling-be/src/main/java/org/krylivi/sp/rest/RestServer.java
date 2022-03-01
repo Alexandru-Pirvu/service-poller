@@ -17,6 +17,7 @@ public class RestServer extends AbstractVerticle {
         router.post("/services").handler(this::createServiceRequestHandler);
         router.get("/services").handler(this::getServicesRequestHandler);
         router.get("/services/:serviceId").handler(this::getServiceRequestHandler);
+        router.delete("/services/:serviceId").handler(this::deleteServiceRequestHandler);
 
         vertx.createHttpServer()
                 .requestHandler(router)
@@ -68,6 +69,19 @@ public class RestServer extends AbstractVerticle {
                 reply -> {
                     if (reply.succeeded()) {
                         routingContext.response().send(reply.result().body().toString());
+                    } else {
+                        routingContext.response().send(reply.cause().getMessage());
+                    }
+                });
+    }
+
+    private void deleteServiceRequestHandler(RoutingContext routingContext) {
+        vertx.eventBus().request(
+                EventBusAddress.DELETE_SERVICE.toString(),
+                routingContext.pathParam("serviceId"),
+                reply -> {
+                    if (reply.succeeded()) {
+                        routingContext.response().send(Boolean.TRUE.toString());
                     } else {
                         routingContext.response().send(reply.cause().getMessage());
                     }

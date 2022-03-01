@@ -59,6 +59,12 @@ public class ServiceInfoRepository extends AbstractVerticle {
                         .onFailure(e -> message.fail(0, e.getMessage())));
 
         vertx.eventBus().consumer(
+                EventBusAddress.DELETE_SERVICE.toString(),
+                message -> this.deleteService(Long.parseLong(message.body().toString()))
+                        .onSuccess(rows -> message.reply(true))
+                        .onFailure(e -> message.fail(0, e.getMessage())));
+
+        vertx.eventBus().consumer(
                 EventBusAddress.ADD_SERVICE.toString(),
                 message -> {
                     AddServiceInfoRequest addServiceInfoRequest = ((Buffer) message.body()).toJsonObject().mapTo(AddServiceInfoRequest.class);
@@ -107,6 +113,16 @@ public class ServiceInfoRepository extends AbstractVerticle {
                 .preparedQuery("update service_info set status=? where id=?")
                 .execute(Tuple.of(updateServiceStatusRequest.status(), updateServiceStatusRequest.id()))
                 .compose(rows -> this.getOne(updateServiceStatusRequest.id()));
+    }
+
+    public Future<Long> deleteService(Long id) {
+        return this.msqlClient
+                .preparedQuery("delete from service_info where id=?")
+                .execute(Tuple.of(id))
+                .compose(rows -> {
+                    Long deletedId = rows.property(MySQLClient.LAST_INSERTED_ID);
+                    return Future.succeededFuture(deletedId);
+                });
     }
 
 }

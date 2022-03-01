@@ -51,8 +51,10 @@
       text-align: start;
     }
 
-    thead tr th {
-
+    td {
+      .action-icon {
+        cursor: pointer;
+      }
     }
   }
 }

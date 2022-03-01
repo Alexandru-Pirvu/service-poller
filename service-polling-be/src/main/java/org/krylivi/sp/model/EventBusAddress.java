@@ -5,5 +5,6 @@ public enum EventBusAddress {
     UPDATE_SERVICE_STATUS,
     GET_SERVICE,
     GET_SERVICES,
-    CALL_SERVICE
+    CALL_SERVICE,
+    DELETE_SERVICE
 }

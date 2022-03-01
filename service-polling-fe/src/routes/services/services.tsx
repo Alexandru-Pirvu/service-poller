@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Header } from '../../components/header/Header';
 import Modal from 'react-modal';
-
 import './services.scss';
 import { Button } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete'
 
 const Services = () => {
 
@@ -37,6 +37,14 @@ const Services = () => {
       });
   };
 
+  const deleteService = (serviceId: number) => {
+    axios.delete(`/services/${serviceId}`)
+      .then(res => {
+        setServices(services.filter(service => service.id !== serviceId));
+        console.log(res.data);
+      });
+  };
+
   const servicesRows = services.map(service => {
     const serviceStatusCellClass = service.status === 'OK' ? 'green': 'red';
 
@@ -47,6 +55,9 @@ const Services = () => {
         <td><a href={service.url}>{service.url}</a></td>
 
         <td className={`${serviceStatusCellClass} status`}/>
+        <td>
+          <DeleteIcon className="action-icon" onClick={() => deleteService(service.id)}>Filled</DeleteIcon>
+        </td>
       </tr>
     );
   });
