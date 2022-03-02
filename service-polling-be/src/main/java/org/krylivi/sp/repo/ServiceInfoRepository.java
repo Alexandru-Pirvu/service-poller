@@ -17,7 +17,7 @@ import io.vertx.sqlclient.Tuple;
 import org.krylivi.sp.model.EventBusAddress;
 import org.krylivi.sp.model.ServiceInfo;
 import org.krylivi.sp.model.ServiceStatus;
-import org.krylivi.sp.rest.dto.AddServiceInfoRequest;
+import org.krylivi.sp.server.dto.AddServiceInfoRequest;
 import org.krylivi.sp.service.dto.UpdateServiceStatusRequest;
 
 import java.util.function.Function;
@@ -26,14 +26,13 @@ import java.util.stream.StreamSupport;
 
 public class ServiceInfoRepository extends AbstractVerticle {
 
-    private MySQLPool msqlClient;
-
     private final Function<Row, ServiceInfo> SERVICE_INFO_ROW_MAPPER = row -> new ServiceInfo(
             row.getLong("id"),
             row.getString("name"),
             row.getString("url"),
             row.getString("status") != null ? ServiceStatus.valueOf(row.getString("status")) : null
     );
+    private MySQLPool msqlClient;
 
     @Override
     public void init(Vertx vertx, Context context) {
@@ -54,6 +53,20 @@ public class ServiceInfoRepository extends AbstractVerticle {
         PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
 
         this.msqlClient = MySQLPool.pool(vertx, mySQLConnectOptions, poolOptions);
+
+        this.msqlClient.query("""
+                        create table service_info
+                        (
+                            id     int auto_increment primary key,
+                            name   tinytext null,
+                            url    tinytext not null,
+                            status tinytext null
+                        )""")
+                .execute(ar -> {
+                    if (ar.failed()) {
+                        vertx.close();
+                    }
+                });
     }
 
     @Override

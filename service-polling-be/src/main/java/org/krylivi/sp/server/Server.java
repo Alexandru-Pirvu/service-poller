@@ -1,4 +1,4 @@
-package org.krylivi.sp.rest;
+package org.krylivi.sp.server;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Handler;
@@ -14,9 +14,9 @@ import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import org.krylivi.sp.model.EventBusAddress;
 
-public class RestServer extends AbstractVerticle {
+public class Server extends AbstractVerticle {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(RestServer.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(Server.class);
 
     @Override
     public void start(Promise<Void> startPromise) {
