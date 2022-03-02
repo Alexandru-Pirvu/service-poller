@@ -39,6 +39,8 @@ All services are dockerized and a demo configuration is provided through the doc
 #### Subsequent deployments:
 * ```cd docker && docker-compose up -d```
 
+The application will be available at **_http://localhost:4000_**.
+
 All the general docker and docker-compose commands can be used to change configurations.
 
 In order to test the application an additional service is created: **_mockserver_**.
