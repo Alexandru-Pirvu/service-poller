@@ -27,7 +27,8 @@ import java.util.stream.StreamSupport;
 public class ServiceInfoRepository extends AbstractVerticle {
 
     private MySQLPool msqlClient;
-    Function<Row, ServiceInfo> SERVICE_INFO_ROW_MAPPER = row -> new ServiceInfo(
+
+    private final Function<Row, ServiceInfo> SERVICE_INFO_ROW_MAPPER = row -> new ServiceInfo(
             row.getLong("id"),
             row.getString("name"),
             row.getString("url"),
@@ -38,12 +39,18 @@ public class ServiceInfoRepository extends AbstractVerticle {
     public void init(Vertx vertx, Context context) {
         super.init(vertx, context);
 
+        String dbHost = System.getenv("DB_HOST") != null ? System.getenv("DB_HOST") : "localhost";
+        int dbPort = System.getenv("DB_PORT") != null ? Integer.parseInt(System.getenv("DB_PORT")) : 3309;
+        String dbName = System.getenv("DB_NAME") != null ? System.getenv("DB_NAME") : "dev";
+        String dbUser = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "dev";
+        String dbPassword = System.getenv("DB_PASSWORD") != null ? System.getenv("DB_PASSWORD") : "secret";
+
         MySQLConnectOptions mySQLConnectOptions = new MySQLConnectOptions()
-                .setPort(3309)
-                .setHost("localhost")
-                .setDatabase("dev")
-                .setUser("dev")
-                .setPassword("secret");
+                .setHost(dbHost)
+                .setPort(dbPort)
+                .setDatabase(dbName)
+                .setUser(dbUser)
+                .setPassword(dbPassword);
         PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
 
         this.msqlClient = MySQLPool.pool(vertx, mySQLConnectOptions, poolOptions);

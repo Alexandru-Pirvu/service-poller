@@ -30,6 +30,12 @@ services:
     hostname: service-poller-be
     ports:
       - '8080:8080'
+    environment:
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_NAME: dev
+      DB_USER: dev
+      DB_PASSWORD: secret
 
   service-poller-fe:
     image: service-poller-fe
