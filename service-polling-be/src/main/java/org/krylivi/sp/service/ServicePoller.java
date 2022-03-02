@@ -7,6 +7,7 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.krylivi.sp.message.ServiceStatusUpdated;
 import org.krylivi.sp.model.EventBusAddress;
 import org.krylivi.sp.model.ServiceInfo;
 import org.krylivi.sp.model.ServiceStatus;
@@ -21,7 +22,7 @@ public class ServicePoller extends AbstractVerticle {
 
     @Override
     public void start() {
-        TimeoutStream pollingStream = vertx.periodicStream(15000);
+        TimeoutStream pollingStream = vertx.periodicStream(1000);
 
         pollingStream
                 .handler(time -> vertx.eventBus().<Buffer>request(EventBusAddress.GET_SERVICES.toString(), null, servicesReply -> {
@@ -49,6 +50,10 @@ public class ServicePoller extends AbstractVerticle {
                                                     (updateStatusReply -> {
                                                         if (updateStatusReply.succeeded()) {
                                                             p.complete();
+
+                                                            ServiceStatusUpdated serviceStatusUpdatedMessage = new ServiceStatusUpdated(serviceInfo.id(), serviceInfo.status());
+                                                            vertx.eventBus().send("services", JsonObject.mapFrom(serviceStatusUpdatedMessage));
+
                                                             LOGGER.info(String.format("Checked service ----- %d = %s", serviceInfo.id(), serviceStatusReply.result().body()));
                                                         } else {
                                                             p.fail(updateStatusReply.cause());

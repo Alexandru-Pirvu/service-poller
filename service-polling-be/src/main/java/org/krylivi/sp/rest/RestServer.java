@@ -4,11 +4,19 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.ext.bridge.BridgeEventType;
+import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import org.krylivi.sp.model.EventBusAddress;
 
 public class RestServer extends AbstractVerticle {
+
+    private final Logger LOGGER = LoggerFactory.getLogger(RestServer.class);
 
     @Override
     public void start(Promise<Void> startPromise) {
@@ -18,6 +26,8 @@ public class RestServer extends AbstractVerticle {
         router.get("/services").handler(this::getServicesRequestHandler);
         router.get("/services/:serviceId").handler(this::getServiceRequestHandler);
         router.delete("/services/:serviceId").handler(this::deleteServiceRequestHandler);
+
+        router.route("/eventbus/*").subRouter(eventBusHandler());
 
         vertx.createHttpServer()
                 .requestHandler(router)
@@ -86,6 +96,17 @@ public class RestServer extends AbstractVerticle {
                         routingContext.response().send(reply.cause().getMessage());
                     }
                 });
+    }
+
+    private Router eventBusHandler() {
+        SockJSBridgeOptions options = new SockJSBridgeOptions().addOutboundPermitted(new PermittedOptions().setAddress("services"))
+                .addInboundPermitted(new PermittedOptions().setAddress("services"));
+        return SockJSHandler.create(vertx).bridge(options, event -> {
+            if (event.type() == BridgeEventType.SOCKET_CREATED) {
+                LOGGER.info("A socket was created");
+            }
+            event.complete(true);
+        });
     }
 
 }

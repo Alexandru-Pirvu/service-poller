@@ -4,7 +4,14 @@ import { Header } from '../../components/header/Header';
 import Modal from 'react-modal';
 import './services.scss';
 import { Button } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete'
+import DeleteIcon from '@mui/icons-material/Delete';
+
+import * as EventBus from '@vertx/eventbus-bridge-client.js/vertx-eventbus';
+
+interface ServiceStatusUpdated {
+  id: number;
+  status: string;
+}
 
 const Services = () => {
 
@@ -22,6 +29,24 @@ const Services = () => {
       .then(res => {
         setServices(res.data);
       });
+
+    let eventBus = new EventBus('http://localhost:8080/eventbus');
+    eventBus.onopen = () => {
+      eventBus.registerHandler('services', (error: any, message: { body: ServiceStatusUpdated }) => {
+        if (!error) {
+          setServices(services => {
+            const indexToUpdate = services.findIndex(service => service.id === message.body.id);
+            const serviceToUpdate = services[indexToUpdate];
+
+            serviceToUpdate.status = message.body.status;
+
+            services.splice(indexToUpdate, 1, serviceToUpdate);
+
+            return [...services];
+          });
+        }
+      });
+    };
   }, []);
 
   const addService = () => {

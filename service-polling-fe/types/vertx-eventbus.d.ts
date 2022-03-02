@@ -1,0 +1,1 @@
+declare module '@vertx/eventbus-bridge-client.js/vertx-eventbus';
