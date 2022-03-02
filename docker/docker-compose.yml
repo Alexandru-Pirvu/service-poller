@@ -19,6 +19,14 @@ services:
 
   mockserver:
     image: mockserver
+    build: ../mock-server
     hostname: mockserver
     ports:
       - '3000-3100:3000-3100'
+
+  service-poller-be:
+    image: service-poller-be
+    build: ../service-polling-be
+    hostname: mockserver
+    ports:
+      - '8080:8080'

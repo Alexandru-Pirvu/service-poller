@@ -1,7 +1,9 @@
 package org.krylivi.sp.repo;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Context;
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -24,7 +26,7 @@ import java.util.stream.StreamSupport;
 
 public class ServiceInfoRepository extends AbstractVerticle {
 
-    private final MySQLPool msqlClient;
+    private MySQLPool msqlClient;
     Function<Row, ServiceInfo> SERVICE_INFO_ROW_MAPPER = row -> new ServiceInfo(
             row.getLong("id"),
             row.getString("name"),
@@ -32,7 +34,10 @@ public class ServiceInfoRepository extends AbstractVerticle {
             row.getString("status") != null ? ServiceStatus.valueOf(row.getString("status")) : null
     );
 
-    public ServiceInfoRepository() {
+    @Override
+    public void init(Vertx vertx, Context context) {
+        super.init(vertx, context);
+
         MySQLConnectOptions mySQLConnectOptions = new MySQLConnectOptions()
                 .setPort(3309)
                 .setHost("localhost")
@@ -83,14 +88,14 @@ public class ServiceInfoRepository extends AbstractVerticle {
                 });
     }
 
-    public Future<RowSet<ServiceInfo>> getAll() {
+    private Future<RowSet<ServiceInfo>> getAll() {
         return this.msqlClient
                 .query("select * from service_info")
                 .mapping(SERVICE_INFO_ROW_MAPPER)
                 .execute();
     }
 
-    public Future<ServiceInfo> getOne(Long id) {
+    private Future<ServiceInfo> getOne(Long id) {
         return this.msqlClient
                 .preparedQuery("select * from service_info where id=?")
                 .mapping(SERVICE_INFO_ROW_MAPPER)
@@ -98,7 +103,7 @@ public class ServiceInfoRepository extends AbstractVerticle {
                 .map(serviceInfos -> serviceInfos.iterator().next());
     }
 
-    public Future<ServiceInfo> save(AddServiceInfoRequest addServiceInfoRequest) {
+    private Future<ServiceInfo> save(AddServiceInfoRequest addServiceInfoRequest) {
         return this.msqlClient
                 .preparedQuery("insert into service_info(name, url) value (?, ?)")
                 .execute(Tuple.of(addServiceInfoRequest.name(), addServiceInfoRequest.url()))
@@ -108,14 +113,14 @@ public class ServiceInfoRepository extends AbstractVerticle {
                 });
     }
 
-    public Future<ServiceInfo> updateServiceStatus(UpdateServiceStatusRequest updateServiceStatusRequest) {
+    private Future<ServiceInfo> updateServiceStatus(UpdateServiceStatusRequest updateServiceStatusRequest) {
         return this.msqlClient
                 .preparedQuery("update service_info set status=? where id=?")
                 .execute(Tuple.of(updateServiceStatusRequest.status(), updateServiceStatusRequest.id()))
                 .compose(rows -> this.getOne(updateServiceStatusRequest.id()));
     }
 
-    public Future<Long> deleteService(Long id) {
+    private Future<Long> deleteService(Long id) {
         return this.msqlClient
                 .preparedQuery("delete from service_info where id=?")
                 .execute(Tuple.of(id))
