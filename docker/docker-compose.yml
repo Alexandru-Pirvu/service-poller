@@ -27,6 +27,13 @@ services:
   service-poller-be:
     image: service-poller-be
     build: ../service-polling-be
-    hostname: mockserver
+    hostname: service-poller-be
     ports:
       - '8080:8080'
+
+  service-poller-fe:
+    image: service-poller-fe
+    build: ../service-polling-fe
+    hostname: service-poller-fe
+    ports:
+      - '4000:4000'
