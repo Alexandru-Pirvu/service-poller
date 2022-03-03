@@ -56,6 +56,8 @@ with 80% chance of success.
   * better logging
   * better error handling
   * possible reactive alternatives to the event bus for certain situations
+  * backend validation for service creation
+  * dedicated object serializers
 * general better UX: 
   * infinite scrolling
   * server-side pagination
