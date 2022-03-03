@@ -10,6 +10,7 @@ import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import org.krylivi.sp.model.EventBusAddress;
@@ -21,6 +22,17 @@ public class Server extends AbstractVerticle {
     @Override
     public void start(Promise<Void> startPromise) {
         Router router = Router.router(vertx);
+
+        router.route().handler(CorsHandler.create("http://localhost:4000")
+                .allowCredentials(true)
+                .allowedMethod(io.vertx.core.http.HttpMethod.GET)
+                .allowedMethod(io.vertx.core.http.HttpMethod.POST)
+                .allowedMethod(io.vertx.core.http.HttpMethod.OPTIONS)
+                .allowedHeader("Access-Control-Request-Method")
+                .allowedHeader("Access-Control-Allow-Credentials")
+                .allowedHeader("Access-Control-Allow-Origin")
+                .allowedHeader("Access-Control-Allow-Headers")
+                .allowedHeader("Content-Type"));
 
         router.post("/services").handler(this::createServiceRequestHandler);
         router.get("/services").handler(this::getServicesRequestHandler);

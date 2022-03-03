@@ -22,10 +22,14 @@ const Services = () => {
   const [url, setUrl] = useState<string>();
   const [urlValid, setUrlValid] = useState<boolean>(false);
 
+  const axiosInstance = axios.create({
+    baseURL: process.env.REACT_APP_SERVER_URL ?? ''
+  });
+
   useEffect(() => {
     Modal.setAppElement('body');
 
-    axios.get(`/services`)
+    axiosInstance.get(`/services`)
       .then(res => {
         setServices(res.data);
       });
@@ -55,7 +59,7 @@ const Services = () => {
     console.log('name', name);
     console.log('url', url);
 
-    axios.post(`/services`, { name, url })
+    axiosInstance.post(`/services`, { name, url })
       .then(res => {
         setServices([...services, res.data]);
         console.log(res.data);
@@ -63,7 +67,7 @@ const Services = () => {
   };
 
   const deleteService = (serviceId: number) => {
-    axios.delete(`/services/${serviceId}`)
+    axiosInstance.delete(`/services/${serviceId}`)
       .then(res => {
         setServices(services.filter(service => service.id !== serviceId));
         console.log(res.data);

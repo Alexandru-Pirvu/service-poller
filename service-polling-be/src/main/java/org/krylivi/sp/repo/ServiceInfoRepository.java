@@ -5,6 +5,8 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mysqlclient.MySQLClient;
@@ -17,6 +19,7 @@ import io.vertx.sqlclient.Tuple;
 import org.krylivi.sp.model.EventBusAddress;
 import org.krylivi.sp.model.ServiceInfo;
 import org.krylivi.sp.model.ServiceStatus;
+import org.krylivi.sp.server.Server;
 import org.krylivi.sp.server.dto.AddServiceInfoRequest;
 import org.krylivi.sp.service.dto.UpdateServiceStatusRequest;
 
@@ -25,6 +28,8 @@ import java.util.stream.StreamSupport;
 
 
 public class ServiceInfoRepository extends AbstractVerticle {
+
+    private final Logger LOGGER = LoggerFactory.getLogger(Server.class);
 
     private final Function<Row, ServiceInfo> SERVICE_INFO_ROW_MAPPER = row -> new ServiceInfo(
             row.getLong("id"),
@@ -55,7 +60,7 @@ public class ServiceInfoRepository extends AbstractVerticle {
         this.msqlClient = MySQLPool.pool(vertx, mySQLConnectOptions, poolOptions);
 
         this.msqlClient.query("""
-                        create table service_info
+                        create table if not exists service_info
                         (
                             id     int auto_increment primary key,
                             name   tinytext null,
@@ -64,6 +69,7 @@ public class ServiceInfoRepository extends AbstractVerticle {
                         )""")
                 .execute(ar -> {
                     if (ar.failed()) {
+                        LOGGER.error("Cannot create table", ar.cause());
                         vertx.close();
                     }
                 });
